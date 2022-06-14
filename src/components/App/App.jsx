@@ -1,4 +1,4 @@
-import { Component } from 'react';
+import { useState, useEffect } from 'react';
 import Button from '../Button';
 import ImageGallery from '../ImageGallery';
 import Searchbar from '../Searchbar';
@@ -15,99 +15,89 @@ import "react-loader-spinner/dist/loader/css/react-spinner-loader.css";
 import { animateScroll as scroll } from "react-scroll";
 
 
-class App extends Component {
-  state = {
-  gallery: [], 
-  imageName: '',
-  isLoading: false,
-    page: 1,
-    error: null,
-    showModal: false,
-    bigImg: '',
-  }
-  
-  componentDidUpdate(prevProps, prevState) {
-    const { imageName, page } = this.state;
-    if (prevState.imageName !== imageName || prevState.page !== page) {
-      this.searchImages();
-    }
-    if (page !== prevState.page && page !== 1) {
-      scroll.scrollToBottom();
-    }
-    
-  }
+export default function App() {
+  const [gallery, setGallery] = useState([]);
+  const [imageName, setImageName] = useState('')
+  const [isLoading, setIsLoading] = useState(false);
+  const [page, setPage] = useState(1);
+  const [error, setError] = useState(null);
+  const [showModal, setShowModal] = useState(false);
+  const [bigImg, setBigImg] = useState('');
 
-    formSubmit = imageName => {
-      this.setState({ imageName, gallery: [], page: 1 })
+  const formSubmit = imageName => {
+    setImageName(imageName);
+    setGallery([]);
+    setPage(1);
       scroll.scrollToTop();
   }
 
-  async searchImages() {
-    const { imageName, page } = this.state;
-    this.setState({ isLoading: true })
+ // eslint-disable-next-line react-hooks/exhaustive-deps
+ async function searchImages() {
+    setIsLoading(true)
 
     try {
       const gallery = await fetchImages(imageName, page)
  
       if (gallery.length === 0) {
         toast.error('Images not found');
-        this.setState({ isLoading: false });
+        setIsLoading(false);
         return;
       } else {
-        this.setState(prevState => ({
-          gallery: [...prevState.gallery, ...gallery],
-          isLoading: false,
-          
-        }))
+  //         const newArr = gallery.map(({ id, webformatURL, largeImageURL }) => {
+  //   return {
+  //     id: id,
+  //     webformatURL: webformatURL,
+  //     largeImageURL: largeImageURL,
+  //   };
+  // });
+        setGallery(prevState => ([...prevState, ...gallery]));
+        setIsLoading(false);
         return 
       }
            } catch (error) {
-      this.setState({ error });
+      setError({ error });
     }
     
   }
   
-  showMoreImg = () => {
-    this.setState(prevState => ({
-      page: prevState.page + 1,
-    }))
-    // scroll.scrollToBottom();
+  const showMoreImg = () => {
+    setPage(prevState => prevState + 1);
+    scroll.scrollToBottom();
   }
         
-  toggleModal = () => {
-    this.setState(state => ({
-      showModal: !state.showModal,
-    }))
+  const toggleModal = () => {
+    setShowModal(!showModal);
   }
 
-  onBigImgClick = (url) => {
-this.toggleModal();
-    this.setState({ bigImg: url });
+ const onBigImgClick = (url) => {
+  toggleModal();
+    setBigImg(url);
+  }
+
+  useEffect(() => {
+    if (!imageName) {
+      return
+    }
+    searchImages();
     
-  }
-
-
-  render() {
-    const { gallery, isLoading, showModal, bigImg, imageName } = this.state;
+  }, [imageName, searchImages]);
 
     return (
       <div className={s.app}
       >
-        <Searchbar onSubmit={this.formSubmit} />
+        <Searchbar onSubmit={formSubmit} />
         {isLoading && <Loader />}
         {imageName && (
 <ImageGallery>
-          <ImageGalleryItem onBigImgClick={this.onBigImgClick} gallery={gallery}/>
+          <ImageGalleryItem onBigImgClick={onBigImgClick} gallery={gallery}/>
         </ImageGallery>
         )}
         
-        {gallery.length > 0 && <Button moreImages={this.showMoreImg} />}
-        {showModal && <Modal onClose={this.toggleModal}>
+        {gallery.length > 0 && <Button moreImages={showMoreImg} />}
+        {showModal && <Modal onClose={toggleModal}>
           <img className={s.bigImage} src={bigImg} alt={imageName} />
         </Modal>}
         <ToastContainer autoClose={3000}/>
       </div> 
-    )};
+    );
 };
-
-export default App;

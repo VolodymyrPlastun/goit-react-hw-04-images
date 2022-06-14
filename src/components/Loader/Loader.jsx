@@ -2,7 +2,8 @@ import "react-loader-spinner/dist/loader/css/react-spinner-loader.css";
 import s from './Loader.module.css';
 import { Grid } from 'react-loader-spinner';
 
-const Loader = () => (
+export default function Loader() {
+    return (
     <div className={s.container}>
     <Grid
     height="100"
@@ -12,5 +13,6 @@ const Loader = () => (
         />
         </div>
 )
+} 
 
-export default Loader;
+
