@@ -31,57 +31,49 @@ export default function App() {
       scroll.scrollToTop();
   }
 
- // eslint-disable-next-line react-hooks/exhaustive-deps
- async function searchImages() {
-    setIsLoading(true)
-
+    useEffect(() => {
+    if (!imageName) {
+      return
+    }
+   const searchImages = async () => {
+  
     try {
       const gallery = await fetchImages(imageName, page)
- 
+setIsLoading(true)
       if (gallery.length === 0) {
         toast.error('Images not found');
-        setIsLoading(false);
         return;
       } else {
-  //         const newArr = gallery.map(({ id, webformatURL, largeImageURL }) => {
-  //   return {
-  //     id: id,
-  //     webformatURL: webformatURL,
-  //     largeImageURL: largeImageURL,
-  //   };
-  // });
+
         setGallery(prevState => ([...prevState, ...gallery]));
-        setIsLoading(false);
-        return 
+        // return 
       }
            } catch (error) {
       setError({ error });
+    } finally {
+setIsLoading(false);
     }
-    
-  }
-  
+   }
+      searchImages();
+  }, [imageName, page]);
+ 
+
   const showMoreImg = () => {
     setPage(prevState => prevState + 1);
-    scroll.scrollToBottom();
+    setTimeout(() => {
+      scroll.scrollToBottom();
+    }, 500);
   }
         
   const toggleModal = () => {
     setShowModal(!showModal);
   }
 
- const onBigImgClick = (url) => {
+ const onBigImgClick = (largeImageURL) => {
   toggleModal();
-    setBigImg(url);
-  }
-
-  useEffect(() => {
-    if (!imageName) {
-      return
-    }
-    searchImages();
-    
-  }, [imageName, searchImages]);
-
+    setBigImg(largeImageURL);
+ }
+  
     return (
       <div className={s.app}
       >
